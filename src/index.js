@@ -11,6 +11,10 @@ dotenv.config({
 })
 
 
+app.get("/", (req, res) => {
+    res.send("hey")
+})
+
 connectDb()
     .then(() => {
         app.on("error", (error) => {
@@ -25,6 +29,10 @@ connectDb()
         console.log('Mongodb Connection failed !!!', err);
     })
 
+
+
+
+// connectDb()
 
 
 
