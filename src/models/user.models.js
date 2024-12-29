@@ -36,7 +36,7 @@ const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Video",
     },
-    pasword: {
+    password: {
       type: String,
       required: [true, "password is required"],
     },
