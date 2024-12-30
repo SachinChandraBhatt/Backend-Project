@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
+import { uploadOnCloudinery } from "../utils/cloudinary.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
@@ -28,13 +29,23 @@ export const registerUser = asyncHandler(async (req, res) => {
   }
 
   // console.log(User);
-  const existUser = User.findOne({
+  const existUser = await User.findOne({
     $or: [{ fullName }, { email }],
   });
+  // console.log(existUser);
 
   if (existUser) {
-    throw new ApiError(400 , "User already exit please login")    
+    throw new ApiError(400, "User already exit please login");
   }
+
+  // console.log(req.files);
+  const avatarLocalPath = req.files?.avatar[0]?.path;
+
+  if (!avatarLocalPath) {
+    throw new ApiError(401, "Avatar is required");
+  }
+
+  const avatar = await uploadOnCloudinery(avatarLocalPath);
 
   return res.status(201).json({
     message: "ey",

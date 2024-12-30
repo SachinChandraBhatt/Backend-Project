@@ -1,13 +1,12 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-import ApiError from "./ApiError.js"
+// import { ApiError } from "./ApiError.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
 
 const uploadOnCloudinery = async (localFilePath)=>{
     try {
@@ -23,9 +22,11 @@ const uploadOnCloudinery = async (localFilePath)=>{
     } catch (error) {
         // remove the locally saved temporary file
         fs.unlinkSync(localFilePath);
-        return null;
+        throw new Error("error hey sachin");
     }
 }
+
+export {uploadOnCloudinery}
 
 // const uploadResult = await cloudinary.uploader
 //        .upload(
