@@ -51,10 +51,10 @@ const userSchema = new Schema(
 
 //hashing the password through bcrypt
 userSchema.pre("save", async function (next) {
-  if (this.isModified("pasword")) return next();
+  if (this.isModified("password")) return next();
 
-  this.pasword = bcrypt.hash(this.pasword);
-  next();
+  this.password = bcrypt.hash(this.password);
+  next()
 });
 
 //comparing the password with thehelp of bcrypt
