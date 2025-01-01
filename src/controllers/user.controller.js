@@ -4,7 +4,20 @@ import { User } from "../models/user.models.js";
 import { uploadOnCloudinery } from "../utils/cloudinary.js";
 import { ApiResponse } from "..//utils/ApiResponse.js";
 
-export const registerUser = asyncHandler(async (req, res) => {
+// refresh and access token generate
+const gnerateAccessAndRefreshToken = async (userId) => {
+  const user = User.findById(userId);
+  const accessToken = await user.generateAccessToken();
+  const refreshToken = await user.generateRefreshToken();
+
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
+  return { accessToken, refreshToken };
+};
+
+// registering user
+const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
   // validation - not empty
   // check if user already exists: username, email
@@ -82,3 +95,64 @@ export const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, responsUser, "user registered successfully"));
 });
 
+// login user
+const loginUser = asyncHandler(async (req, res) => {
+  // gt the data from req body
+  // chk that req filed is empty or not
+  // chkc that user exit or not
+  // check password is correct or not
+  // gnerate access and refresh token
+  // send cookies
+  const { username, email, password, confPassword } = req.body;
+  if (!(username || email)) {
+    throw new ApiError(401, "user credentials required");
+  }
+  if (!(password || confPassword)) {
+    throw new ApiError(401, "user password and confirm password required");
+  }
+  if (password !== confPassword) {
+    throw new ApiError(401, "user password and confirm password not matched");
+  }
+
+  const user = await User.findOne({
+    $or: [{ username }, { email }],
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not registered");
+  }
+
+  const passwordMatch = await user.isPasswordCorrect(password);
+  if (!passwordMatch) {
+    throw new ApiError(401, "password does not matched");
+  }
+
+  const { accessToken, refreshToken } = await gnerateAccessAndRefreshToken(
+    user._id
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  const logedInUser = User.findById(user._id).select("-password -refreshToken");
+
+  res
+    .status(201)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          logedInUser,
+          accessToken,
+          refreshToken,
+        },
+        "user logged in successfully"
+      )
+    );
+});
+
+export { registerUser };
